@@ -9,7 +9,7 @@ plt.figure(figsize=(15,15))
 data, sample_rate = librosa.load(audio_sample)
 _ = librosa.display.waveplot(data, sr=sample_rate)
 ipd.Audio(audio_sample)
-#plt.show() #take out for jupyter notebook
+plt.show() #take out for jupyter notebook
 #playsound(audio_sample) -> install with pip to hear on Ubuntu
 
 data = pd.read_csv('UrbanSound8K/metadata/UrbanSound8K.csv')

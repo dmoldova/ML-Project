@@ -57,19 +57,48 @@ seq_model.add(Activation('softmax'))
 
 seq_model.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
-# seq_model.summary()
+seq_model.summary()
 
-# score = seq_model.evaluate(x_test, y_test)
-# accuracy = 100 * score[1]
-# print("Pre-training accuracy: ", round(accuracy, 2), "%")
+score = seq_model.evaluate(x_test, y_test)
+accuracy = 100 * score[1]
+print("Pre-training accuracy: ", round(accuracy, 2), "%")
 
 start = datetime.now()
 seq_model.fit(x_train, y_train, batch_size = 32, epochs = 100, validation_data = (x_test, y_test), verbose = 1)
 duration = datetime.now() - start
 print("Training complete in ", duration, 2)
 
-score = seq_model.evaluate(x_train, y_train, verbose = 0)
+score = seq_model.evaluate(x_train, y_train, verbose = 1)
 print("Training Accuracy: ", score[1])
 
-score = seq_model.evaluate(x_test, y_test, verbose = 0)
+score = seq_model.evaluate(x_test, y_test, verbose = 1)
 print("Testing accuracy: ", score[1])
+
+def extract_features(name):
+	try:
+		audio, sample = librosa.load(name, res_type = 'kaiser_fast') 
+		mfccs = librosa.feature.mfcc(y = audio, sr = sample, n_mfcc = 40)
+		mfccsscaled = np.mean(mfccs.T, axis = 0)
+	except Exception as e:
+		return None, None
+
+	return np.array([mfccsscaled])
+
+def print_pred(name):
+	pred_features = extract_features(name)
+
+	pred_vectors = seq_model.predict_classes(pred_features)
+	pred_class = le.inverse_transform(pred_vectors)
+	print("Predicted class: ", pred_class[0])
+
+	pred_probability_vector = seq_model.predict_proba(pred_features)
+	predict_probability = pred_probability_vector[0]
+	for i in range(len(predict_probability)):
+		category = le.inverse_transform(np.array([i]))
+		print(category[0], "\t : ", format(predict_probability[i], '.16f'))
+
+test_name = "UrbanSound8K/audio/fold2/4201-3-1-0.wav"
+print_pred(test_name)
+
+test_name2 = "UrbanSound8K/audio/fold10/7062-6-0-0.wav"
+print_pred(test_name2)
